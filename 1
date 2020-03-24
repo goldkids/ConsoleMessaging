@@ -1,0 +1,205 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FireSharp.Config;
+using FireSharp.Response;
+using FireSharp.Interfaces;
+
+namespace MessageConsoleApp
+{
+     class Program
+    {
+
+        static void Main()
+        {
+            Setup();
+        }
+
+        public string currentUser;
+
+        IFirebaseConfig ifc = new FirebaseConfig()
+        {
+            AuthSecret = "ktjqDxpJptHgyzE3bUd2BwgkLidbcvJcQJsyB4f6",
+            BasePath = "https://multiplayer-text-game.firebaseio.com/"
+        };
+
+        IFirebaseClient client;
+
+        private void Program_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                client = new FireSharp.FirebaseClient(ifc);
+            }
+            catch
+            {
+                Console.WriteLine("Error");
+            }
+        }
+
+        
+
+        public static void Setup()
+        {
+
+            Program p = new Program();
+            p.Login();
+            
+        }
+
+        #region Get&SendMethods
+
+        
+        public static void SendMessage(string _location, Message _message)
+        {
+
+        }
+
+        public static void GetMessage(string _location)
+        {
+
+        }
+
+        public static bool SendAccount(Account _message, IFirebaseClient client)
+        {
+            var set = client.Set(@"Students/"+ _message.username, _message);
+            return true;
+        }
+
+        public static void GetAccount(string _location)
+        {
+
+        }
+
+        #endregion Get&SendMethods
+
+        public  void Login()
+        {
+            Console.WriteLine("To create an account type \"/create account\". If you have an account please enter \"/login\". Use \"/help\" to get more info." );
+            UserInput a = GetUserInput();
+        }
+
+        #region UserInput
+        public  UserInput GetUserInput()
+        {
+            string input = Console.ReadLine();
+            bool _isCommand = CheckCommands(input);
+
+            UserInput ui = new UserInput()
+            {
+                text = input,
+                isCommand = _isCommand
+            };
+
+            if(ui.isCommand == false)
+            {
+                Message m = new Message()
+                {
+                    sender = "",
+                    text = ui.text
+                };
+                SendMessage("", m);
+            }
+            else
+            {
+                RunCommands(input);
+            }
+
+            return ui;
+        }
+
+        public static bool CheckCommands(string input)
+        {
+            if (input.StartsWith("/"))
+            {
+               
+                return true;
+            }
+            else
+            {
+                return false;
+                
+            }
+        }
+
+        public void RunCommands(string input)
+        {
+            #region Commands
+
+            if (input == "/help")
+            {
+                #region CommandHelpList
+                Console.WriteLine("\"/help\" to get command list");
+                Console.WriteLine("\"/login\" to login");
+                Console.WriteLine("\"/create account\" to create an account");
+                #endregion CommandHelpList
+                UserInput a = GetUserInput();
+            }
+            if (input == "/create account")
+            {
+                #region createAccount
+                Console.WriteLine("Enter Preferred Username: ");
+                UserInput a = GetUserInput();
+                string username = a.text;
+                //see if username is taken
+                Console.WriteLine("Enter Email: ");
+                a = GetUserInput();
+                string email = a.text;
+                Console.WriteLine("Enter Password: ");
+                a = GetUserInput();
+                string password = a.text;
+
+                Account act = new Account()
+                {
+                    username = username,
+                    email = email,
+                    password = password
+                };
+
+                var set = client.Set(@"Accounts/" + act.username + "/", act);
+
+                a = GetUserInput();
+                #endregion createAccount
+            }
+            if (input == "/login")
+            {
+                UserInput a = GetUserInput();
+            }
+            
+
+            #endregion Commands
+        }
+
+        
+
+        #endregion UserInput
+
+    }
+
+    #region Classes
+
+    class Message
+    {
+        public string sender { get; set; }
+        public string text { get; set; }
+    }
+    class Account
+    {
+        public string username { get; set; }
+        public string email { get; set; }
+        public string password { get; set; }
+    }
+    class UserInput
+    {
+        public string text { get; set; }
+        public bool isCommand { get; set; }
+    }
+
+
+    #endregion Classes
+}
